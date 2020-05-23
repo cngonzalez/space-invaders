@@ -1,0 +1,31 @@
+body {
+  background-color: #222426;
+  padding: 1rem;
+}
+
+img.enemy {
+  max-width: 40px;
+  margin: 20px;
+}
+
+div.enemies {
+  min-height: 90vh;
+  width: 90vw;
+  margin: 0 auto;
+}
+
+div#info {
+  color: #11ff44;
+  width: 100%;
+  text-align:center;
+  font-family: 'Press Start 2P', cursive;
+  line-height: 1.5;
+  margin-top: 10%;
+  cursor: pointer;
+}
+
+div.enemy-row {
+  max-width: 800px;
+}
+
+
