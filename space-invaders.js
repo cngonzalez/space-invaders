@@ -1,19 +1,18 @@
 class Game {
-
-constructor() {
-    this.windowWidth = (window.innerWidth * .9) - 800;
-    let margin = this.windowWidth / 2;
-    this.populateEnemies(margin);
-    this.outermost = margin;
-    this.speed = 500;
-    this.movingLeft = 0;
-    this.placePlayer();
-    this.moveEnemies();
+  constructor() {
+      this.windowWidth = (window.innerWidth * .9) - 800;
+      let margin = this.windowWidth / 2;
+      this.populateEnemies(margin);
+      this.outermost = margin;
+      
+      this.speed = 500;
+      this.movingLeft = 0;
+      this.placePlayer(margin);
+      this.moveEnemies();
   }
 
 
   populateEnemies(margin) {
-    //represents objs remaining in  each enemy col
     this.enemies = Array(10).fill(5);
     document.getElementById("enemies").innerHTML = "";
     let enemyTemplate = `<img src="./enemy.png" class="enemy" />`
@@ -23,7 +22,33 @@ constructor() {
     document.getElementById("enemies").innerHTML = row.repeat(5);
   }
 
-  placePlayer() {}
+
+  placePlayer() {
+    let margin = (window.innerWidth / 2) - 30;
+    let playerHTML = `<img 
+        src="./player.png"
+        id="player"
+        style="margin-left:${margin}px;"/>`
+    document.getElementById("player-bar").innerHTML = playerHTML;
+    document.addEventListener("keydown", (e) => {
+      this.changePlayerDirection(e,this);
+    });
+  }
+
+
+  changePlayerDirection(e,game) {
+      let direction;
+      if (e.key == "ArrowRight") {
+        direction = 0;
+      } else if (e.key == "ArrowLeft") {
+        direction = 1;
+      }
+
+      if (typeof(direction) != "undefined") {
+        let player = document.getElementById("player");
+        game.moveObject(player, 40, direction);
+      }
+  }
 
 
   moveEnemies() {
@@ -58,13 +83,23 @@ constructor() {
         break;
       case 2:
         relevantMargin = "marginTop";
+        break;
+      case 3:
+        relevantMargin = "marginBottom";
     }
 
     let existingMargin = parseInt(
       elem.style[relevantMargin].split("p")[0]);
-
-    elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
     
+    //check for player obj to not go off-screen
+    let cantMove = (
+      (direction == 0 && existingMargin + shift  >= (window.innerWidth * .9)) ||
+      (direction == 1 && existingMargin + shift <=  0)
+    )
+    console.log(existingMargin + shift);
+    if (!cantMove) {
+        elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
+    }
   }
 }
 
@@ -74,12 +109,3 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("enemies").innerHTML = "";
   game = new Game();
 });
-
-
-function moveRight(img) {
-  setTimeout(() => {
-    let leftPos = parseInt(img.style.left.split("p")[0]);
-    img.style.left = `${leftPos + 50}px`;
-    moveRight(img);
-    }, 250);
-}
