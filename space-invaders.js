@@ -1,11 +1,16 @@
 class Game {
   constructor() {
       this.windowWidth = (Math.floor(window.innerWidth * .9)) - 800;
+
+      //use this var to center enemies and determine starting pos
       let margin = this.windowWidth / 2;
-      this.vulnerableEnemies = this.populateEnemies(margin);
-      this.placePlayer(margin);
+      this.vulnerableEnemies = [];
+      this.populateEnemies(margin);
       this.outermost = margin;
       
+      this.placePlayer();
+
+      //beginning gameplay conditions
       this.speed = 1000;
       this.movingLeft = 0;
       this.moveEnemies();
@@ -13,8 +18,10 @@ class Game {
 
 
   populateEnemies(margin) {
+    //clear starting message
     let enemiesDiv = document.getElementById("enemies");
     enemiesDiv.innerHTML = "";
+
     let enemyTemplate = `<img src="./enemy.png" class="enemy"`;
     for (let i=0;i<5;i++) {
       let row = `<div class="enemy-row" style="margin-left:${margin}px">` 
@@ -24,12 +31,12 @@ class Game {
       row += `</div>`
       enemiesDiv.innerHTML += row;
     }
-    let vulnerableEnemies = [];
+
+    //starting pos and ids of bottom row, exposed to shooting
     for (let j=0;j<10;j++) {
-      vulnerableEnemies.push(
+      this.vulnerableEnemies.push(
       new Enemy(4, j, margin, 0));
     }
-    return vulnerableEnemies;
   }
 
 
@@ -40,31 +47,31 @@ class Game {
         id="player"
         style="margin-left:${margin}px;"/>`
     document.getElementById("player-bar").innerHTML = playerHTML;
+
     document.addEventListener("keydown", (e) => {
-      this.changePlayerDirection(e,this);
+      switch (e.key) {
+        case "ArrowRight":
+          this.changePlayerDirection(0,this);
+          break;
+        case "ArrowLeft":
+          this.changePlayerDirection(1,this);
+      }
     });
   }
 
 
-  changePlayerDirection(e,game) {
-      let direction;
-      if (e.key == "ArrowRight") {
-        direction = 0;
-      } else if (e.key == "ArrowLeft") {
-        direction = 1;
-      }
+  changePlayerDirection(direction,game) {
+    let player = document.getElementById("player");
 
-      if (typeof(direction) != "undefined") {
-        let player = document.getElementById("player");
+    //check for player obj to not go off-screen
+    let cantMove = (
+      (direction == 0 && parseInt(player.style.marginLeft.split("p")[0]) + 40  >= (window.innerWidth * .9)) ||
+      (direction == 1 && parseInt(player.style.marginLeft.split("p")[0]) - 40 <=  0)
+    );
 
-        //check for player obj to not go off-screen
-        let cantMove = (
-          (direction == 0 && parseInt(player.style.marginLeft.split("p")[0]) + 40  >= (window.innerWidth * .9)) ||
-          (direction == 1 && parseInt(player.style.marginLeft.split("p")[0]) - 40 <=  0)
-        );
-
-        if (!cantMove) {game.moveObject(player, 40, direction)};
-      }
+    if (!cantMove) {
+      game.moveObject(player, 40, direction)
+    };
   }
 
 
@@ -72,15 +79,20 @@ class Game {
     let enemyRows = Object.entries(
       document.getElementsByClassName("enemy-row"));
     if (this.outermost >= this.windowWidth) {
+      //if margin is exceeded, push down
       this.moveObject(enemyRows[0][1], 15, 2);
+      //get faster
       this.speed -= 15;
+      //change dir
       this.movingLeft = Boolean(this.movingLeft) ? 0 : 1;
+      //reset count
       this.outermost = 0;
     }
 
     enemyRows.forEach((enemyRow) => (this.moveObject(
     enemyRow[1], 20, this.movingLeft)));
 
+    //update shootable enemies in memory
     this.vulnerableEnemies.forEach((enemy) => (
       enemy.update(this.movingLeft, 20)));
 
@@ -103,14 +115,12 @@ class Game {
         break;
       case 2:
         relevantMargin = "marginTop";
-        break;
-      case 3:
-        relevantMargin = "marginBottom";
     }
 
     let existingMargin = parseInt(
       elem.style[relevantMargin].split("p")[0]);
-      elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
+
+    elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
   }
 }
 
