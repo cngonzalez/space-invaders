@@ -1,25 +1,35 @@
 class Game {
   constructor() {
-      this.windowWidth = (window.innerWidth * .9) - 800;
+      this.windowWidth = (Math.floor(window.innerWidth * .9)) - 800;
       let margin = this.windowWidth / 2;
-      this.populateEnemies(margin);
+      this.vulnerableEnemies = this.populateEnemies(margin);
+      this.placePlayer(margin);
       this.outermost = margin;
       
-      this.speed = 500;
+      this.speed = 1000;
       this.movingLeft = 0;
-      this.placePlayer(margin);
       this.moveEnemies();
   }
 
 
   populateEnemies(margin) {
-    this.enemies = Array(10).fill(5);
-    document.getElementById("enemies").innerHTML = "";
-    let enemyTemplate = `<img src="./enemy.png" class="enemy" />`
-    let row = `<div class="enemy-row" style="margin-left:${margin}px">` 
-    row += (enemyTemplate.repeat(10))
-    row += `</div>`
-    document.getElementById("enemies").innerHTML = row.repeat(5);
+    let enemiesDiv = document.getElementById("enemies");
+    enemiesDiv.innerHTML = "";
+    let enemyTemplate = `<img src="./enemy.png" class="enemy"`;
+    for (let i=0;i<5;i++) {
+      let row = `<div class="enemy-row" style="margin-left:${margin}px">` 
+      for (let j=0;j<10;j++) {
+        row += (enemyTemplate + `id="${i}-${j}" />`);
+      }
+      row += `</div>`
+      enemiesDiv.innerHTML += row;
+    }
+    let vulnerableEnemies = [];
+    for (let j=0;j<10;j++) {
+      vulnerableEnemies.push(
+      new Enemy(4, j, margin, 0));
+    }
+    return vulnerableEnemies;
   }
 
 
@@ -46,7 +56,14 @@ class Game {
 
       if (typeof(direction) != "undefined") {
         let player = document.getElementById("player");
-        game.moveObject(player, 40, direction);
+
+        //check for player obj to not go off-screen
+        let cantMove = (
+          (direction == 0 && parseInt(player.style.marginLeft.split("p")[0]) + 40  >= (window.innerWidth * .9)) ||
+          (direction == 1 && parseInt(player.style.marginLeft.split("p")[0]) - 40 <=  0)
+        );
+
+        if (!cantMove) {game.moveObject(player, 40, direction)};
       }
   }
 
@@ -61,8 +78,11 @@ class Game {
       this.outermost = 0;
     }
 
-    enemyRows.forEach((enemyRow) => this.moveObject(
-    enemyRow[1], 20, this.movingLeft));
+    enemyRows.forEach((enemyRow) => (this.moveObject(
+    enemyRow[1], 20, this.movingLeft)));
+
+    this.vulnerableEnemies.forEach((enemy) => (
+      enemy.update(this.movingLeft, 20)));
 
     setTimeout(() => {
       this.outermost = this.outermost + 20;
@@ -90,15 +110,33 @@ class Game {
 
     let existingMargin = parseInt(
       elem.style[relevantMargin].split("p")[0]);
-    
-    //check for player obj to not go off-screen
-    let cantMove = (
-      (direction == 0 && existingMargin + shift  >= (window.innerWidth * .9)) ||
-      (direction == 1 && existingMargin + shift <=  0)
-    )
-    console.log(existingMargin + shift);
-    if (!cantMove) {
-        elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
+      elem.style[relevantMargin] = `${(existingMargin || 0) + shift}px`; 
+  }
+}
+
+
+
+class Enemy {
+  constructor(i, j, leftMargin, topMargin) {
+    this.i = i;
+    this.j = j;
+    this.leftBound = leftMargin + (j * 80) + 20;
+    this.rightBound = this.leftBound + 40;
+    this.bottomBound = topMargin + (i * 75) + 55;
+  }
+
+  update(direction, amount) {
+    switch(direction) {
+      case 0:
+        this.leftBound -= amount;
+        this.rightBound -= amount;
+        break;
+      case 1:
+        this.leftBound += amount;
+        this.rightBound += amount;
+        break;
+      case 2:
+        this.bottomBound += amount;
     }
   }
 }
@@ -106,6 +144,9 @@ class Game {
 
 let game;
 document.addEventListener("DOMContentLoaded", function() {
-  document.getElementById("enemies").innerHTML = "";
-  game = new Game();
+  document.addEventListener("keydown", (e) => {
+    if (typeof(game) == "undefined") {
+      game = new Game();
+    }
+  });
 });
