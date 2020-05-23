@@ -6,11 +6,11 @@ class Game {
       let margin = this.windowWidth / 2;
       this.vulnerableEnemies = [];
       this.populateEnemies(margin);
-      this.outermost = margin;
       
       this.placePlayer();
 
       //beginning gameplay conditions
+      this.outermost = margin;
       this.speed = 1000;
       this.movingLeft = 0;
       this.moveEnemies();
@@ -87,6 +87,9 @@ class Game {
       this.movingLeft = Boolean(this.movingLeft) ? 0 : 1;
       //reset count
       this.outermost = 0;
+      //update shootable enemies in memory
+      this.vulnerableEnemies.forEach((enemy) => (
+        enemy.update(2, 15)));
     }
 
     enemyRows.forEach((enemyRow) => (this.moveObject(
