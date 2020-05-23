@@ -141,12 +141,12 @@ class Enemy {
   update(direction, amount) {
     switch(direction) {
       case 0:
-        this.leftBound -= amount;
-        this.rightBound -= amount;
-        break;
-      case 1:
         this.leftBound += amount;
         this.rightBound += amount;
+        break;
+      case 1:
+        this.leftBound -= amount;
+        this.rightBound -= amount;
         break;
       case 2:
         this.bottomBound += amount;
